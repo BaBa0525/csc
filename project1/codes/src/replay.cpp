@@ -12,31 +12,31 @@
 #include "net.h"
 #include "transport.h"
 
-struct frame_arr frame_buf;
+frame_arr frame_buf;
 
 void tx_esp_rep(Dev dev, Net net, Esp esp, Txp txp, uint8_t* data, ssize_t dlen,
                 long msec) {
     size_t nb = dlen;
 
     txp.plen = dlen;
-    txp.fmt_rep(&txp, net.ip4hdr, data, nb);
-    nb += sizeof(struct tcphdr);
+    txp.fmt_rep(net.ip4hdr, data, nb);
+    nb += sizeof(tcphdr);
 
     esp.plen = nb;
-    esp.fmt_rep(&esp, TCP);
-    esp.set_padpl(&esp);
-    memcpy(esp.pl, &txp.thdr, txp.hdrlen);
-    memcpy(esp.pl + txp.hdrlen, txp.pl, txp.plen);
-    esp.set_auth(&esp, hmac_sha1_96);
+    esp.fmt_rep(TCP);
+    esp.set_padpl();
+    memcpy(esp.pl.data(), &txp.thdr, txp.hdrlen);
+    memcpy(esp.pl.data() + txp.hdrlen, txp.pl.data(), txp.plen);
+    esp.set_auth(hmac_sha1_96);
     nb +=
         sizeof(EspHeader) + sizeof(EspTrailer) + esp.tlr.pad_len + esp.authlen;
 
     net.plen = nb;
-    net.fmt_rep(&net);
+    net.fmt_rep();
 
-    dev.fmt_frame(&dev, net, esp, txp);
+    dev.fmt_frame(net, esp, txp);
 
-    dev.tx_frame(&dev);
+    dev.tx_frame();
 }
 
 ssize_t send_msg(Dev* dev, Net* net, Esp* esp, Txp* txp, char* str) {
@@ -50,12 +50,13 @@ ssize_t send_msg(Dev* dev, Net* net, Esp* esp, Txp* txp, char* str) {
 
     if (str != NULL) {
         int i;
-        for (i = 0; i < strlen(str); i++) {
+        int len = strlen(str);
+        for (i = 0; i < len; i++) {
             buf[i] = (uint8_t)str[i];
         }
         buf[i] = (uint8_t)'\r';
         buf[i + 1] = (uint8_t)'\n';
-        nb = strlen(str) + 1;
+        nb = len + 1;
     } else {
         nb = 0;
     }
@@ -67,13 +68,13 @@ ssize_t send_msg(Dev* dev, Net* net, Esp* esp, Txp* txp, char* str) {
 
 bool dissect_rx_data(Dev* dev, Net* net, Esp* esp, Txp* txp, int* state,
                      char* victim_ip, char* server_ip, bool* test_for_dissect) {
-    uint8_t* net_data =
-        net->dissect(net, dev->frame + LINKHDRLEN, dev->framelen - LINKHDRLEN);
+    uint8_t* net_data = net->dissect(dev->frame.data() + LINKHDRLEN,
+                                     dev->framelen - LINKHDRLEN);
 
     if (net->pro == ESP) {
-        uint8_t* esp_data = esp->dissect(esp, net_data, net->plen);
+        uint8_t* esp_data = esp->dissect(net_data, net->plen);
 
-        uint8_t* txp_data = txp->dissect(net, txp, esp_data, esp->plen);
+        uint8_t* txp_data = txp->dissect(net, esp_data, esp->plen);
 
         if (txp->thdr.psh) {
             if (*test_for_dissect) {
@@ -82,8 +83,8 @@ bool dissect_rx_data(Dev* dev, Net* net, Esp* esp, Txp* txp, int* state,
             }
 
             if (txp_data != NULL && txp->thdr.psh && *state == WAIT_SECRET &&
-                strcmp(victim_ip, net->dst_ip) == 0 &&
-                strcmp(server_ip, net->src_ip) == 0) {
+                strcmp(victim_ip, net->dst_ip.data()) == 0 &&
+                strcmp(server_ip, net->src_ip.data()) == 0) {
                 puts("get secret: ");
                 write(1, txp_data, txp->plen);
                 puts("");
@@ -100,7 +101,7 @@ uint8_t* wait(Dev* dev, Net* net, Esp* esp, Txp* txp, int* state,
     bool dissect_finish;
 
     while (true) {
-        dev->framelen = dev->rx_frame(dev);
+        dev->framelen = dev->rx_frame();
         dissect_finish = dissect_rx_data(dev, net, esp, txp, state, victim_ip,
                                          server_ip, test_for_dissect)
                              ? true
@@ -108,25 +109,26 @@ uint8_t* wait(Dev* dev, Net* net, Esp* esp, Txp* txp, int* state,
         if (dissect_finish) break;
     }
 
-    return dev->frame;
+    return dev->frame.data();
 }
 
 void record_txp(Net* net, Esp* esp, Txp* txp) {
     extern EspHeader esp_hdr_rec;
 
-    if (net->pro == ESP && strcmp(net->x_src_ip, net->src_ip) == 0) {
+    if (net->pro == ESP &&
+        strcmp(net->x_src_ip.data(), net->src_ip.data()) == 0) {
         esp_hdr_rec.spi = esp->hdr.spi;
         esp_hdr_rec.seq = ntohl(esp->hdr.seq);
     }
 
-    if (strcmp(net->x_src_ip, net->src_ip) == 0) {
+    if (strcmp(net->x_src_ip.data(), net->src_ip.data()) == 0) {
         txp->x_tx_seq = ntohl(txp->thdr.th_seq) + txp->plen;
         txp->x_tx_ack = ntohl(txp->thdr.th_ack);
         txp->x_src_port = ntohs(txp->thdr.th_sport);
         txp->x_dst_port = ntohs(txp->thdr.th_dport);
     }
 
-    if (strcmp(net->x_src_ip, net->dst_ip) == 0) {
+    if (strcmp(net->x_src_ip.data(), net->dst_ip.data()) == 0) {
         txp->x_tx_seq = ntohl(txp->thdr.th_ack);
         txp->x_tx_ack = ntohl(txp->thdr.th_seq) + txp->plen;
         txp->x_src_port = ntohs(txp->thdr.th_dport);
@@ -141,16 +143,16 @@ void get_info(Dev* dev, Net* net, Esp* esp, Txp* txp, int* state,
     wait(dev, net, esp, txp, state, victim_ip, server_ip, test_for_dissect);
 
     if (*state != SEND_ACK) {
-        memcpy(dev->linkhdr, dev->frame, LINKHDRLEN);
+        memcpy(dev->linkhdr.data(), dev->frame.data(), LINKHDRLEN);
 
-        strcpy(net->x_src_ip, net->src_ip);
-        strcpy(net->x_dst_ip, net->dst_ip);
+        strcpy(net->x_src_ip.data(), net->src_ip.data());
+        strcpy(net->x_dst_ip.data(), net->dst_ip.data());
 
         txp->x_src_port = ntohs(txp->thdr.th_sport);
         txp->x_dst_port = ntohs(txp->thdr.th_dport);
 
         record_txp(net, esp, txp);
         esp_hdr_rec.spi = esp->hdr.spi;
-        esp->get_key(esp);
+        esp->get_key();
     }
 }

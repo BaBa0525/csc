@@ -1,23 +1,25 @@
-CC = gcc
-CFLAGS = -std=gnu11 -Wall -I include
-DFLAG = -g
-
+CXX := g++
+CXXFLAGS := -std=c++17 -Wall -I include
+DFLAG := -g
 
 HIJACK = ipsec_hijack
 
-DEPS = \
-	src/dev.c             \
-	src/net.c             \
-	src/esp.c             \
-	src/hmac.c            \
-	src/transport.c       \
-	src/replay.c          \
-	src/sha1.c
+SRC := $(wildcard src/*.cpp)
+OBJ := $(patsubst src/%.cpp, objects/%.o, $(SRC))
+
+.PHONY: all clean
 
 all: $(HIJACK)
 
-$(HIJACK): src/main.c $(DEPS)
-	$(CC) $^ -o $@ $(CFLAGS) $(DFLAG)
+$(HIJACK): $(OBJ)
+	$(CXX) $^ -o $@ $(CXXFLAGS) $(DFLAG)
+
+objects/%.o: src/%.cpp objects
+	$(CXX) $< -c -o $@ $(CXXFLAGS)
+
+objects:
+	mkdir objects
 
 clean:
-	rm -f $(HIJACK)
+	-rm -rf objects
+	-rm -f $(HIJACK)

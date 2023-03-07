@@ -5,48 +5,28 @@
 #include <net/if.h>
 #include <stdint.h>
 
-#ifndef _TYPEDEF_STRUCT_DEV
-#define _TYPEDEF_STRUCT_DEV
-typedef struct dev Dev;
-#endif
+#include <array>
+#include <string>
 
-#ifndef _TYPEDEF_STRUCT_NET
-#define _TYPEDEF_STRUCT_NET
-typedef struct net Net;
-#endif
+#include "constants.h"
+#include "esp.h"
+#include "transport.h"
 
-#ifndef _TYPEDEF_STRUCT_ESP
-#define _TYPEDEF_STRUCT_ESP
-typedef struct esp Esp;
-#endif
-
-#ifndef _TYPEDEF_STRUCT_TXP
-#define _TYPEDEF_STRUCT_TXP
-typedef struct txp Txp;
-#endif
-
-struct dev {
+struct Dev {
     int mtu;
 
-    struct sockaddr_ll addr;
+    sockaddr_ll addr;
     int fd;
 
-    uint8_t* frame;
+    std::array<uint8_t, BUFSIZE> frame;
     uint16_t framelen;
 
-    uint8_t* linkhdr;
+    std::array<uint8_t, LINKHDRLEN> linkhdr;
 
-    void (*fmt_frame)(Dev* self, Net net, Esp esp, Txp txp);
-    ssize_t (*tx_frame)(Dev* self);
-    ssize_t (*rx_frame)(Dev* self);
+    Dev(const std::string& dev_name);
+    void fmt_frame(Net net, Esp esp, Txp txp);
+    ssize_t tx_frame();
+    ssize_t rx_frame();
 };
-
-void init_dev(Dev* self, char* dev_name);
-
-void fmt_frame(Dev* self, Net net, Esp esp, Txp txp);
-
-ssize_t tx_frame(Dev* self);
-
-ssize_t rx_frame(Dev* self);
 
 #endif
