@@ -190,7 +190,7 @@ void SHA1_Init(SHA1_CTX* context) {
  * @param len     Number of bytes
  */
 void SHA1_Update(SHA1_CTX* context, const void* p, size_t len) {
-    const uint8_t* data = p;
+    const uint8_t* data = reinterpret_cast<const uint8_t*>(p);
     size_t i, j;
 
     j = (context->count[0] >> 3) & 63;

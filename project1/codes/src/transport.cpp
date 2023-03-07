@@ -28,7 +28,7 @@ Txp* fmt_tcp_rep(Txp* self, struct iphdr iphdr, uint8_t* data, size_t dlen) {
     return self;
 }
 
-inline void init_txp(Txp* self) {
+void init_txp(Txp* self) {
     self->pl = (uint8_t*)malloc(IP_MAXPACKET * sizeof(uint8_t));
     self->hdrlen = sizeof(struct tcphdr);
 

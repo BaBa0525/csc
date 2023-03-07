@@ -59,7 +59,7 @@ uint8_t* wait(Dev* dev, Net* net, Esp* esp, Txp* txp, int* state,
 
 void record_txp(Net* net, Esp* esp, Txp* txp);
 
-void get_info(Dev* dev, Net* net, Esp* esp, Txp* txp, int* try, char* victim_ip,
-              char* server_ip, bool* test_for_dissect);
+void get_info(Dev* dev, Net* net, Esp* esp, Txp* txp, int* state,
+              char* victim_ip, char* server_ip, bool* test_for_dissect);
 
 #endif
