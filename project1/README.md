@@ -4,7 +4,7 @@
 
 - [ ] `dev.c`
 
-  - [ ] Fill up struct `sockaddr_ll` addr which will be used to bind in func `set_sock_fd`
+  - [x] Fill up struct `sockaddr_ll` addr which will be used to bind in func `set_sock_fd`
   - [ ] Store the whole frame into `self->frame` and store the length of the frame into `self->framelen`
 
 - [ ] `esp.c`

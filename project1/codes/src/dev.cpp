@@ -33,12 +33,22 @@ inline static int get_ifr_mtu(ifreq* ifr) {
     return ifr->ifr_mtu;
 }
 
+// Fill up struct sockaddr_ll addr which will be used to bind in
+// func set_sock_fd
 inline static sockaddr_ll init_addr(const std::string& name) {
     sockaddr_ll addr;
     bzero(&addr, sizeof(addr));
 
-    // [TODO]: Fill up struct sockaddr_ll addr which will be used to bind in
-    // func set_sock_fd
+    struct if_nameindex* if_ni = if_nameindex();
+
+    for (auto i = if_ni; !(i->if_index == 0 && i->if_name == NULL); i++) {
+        printf("%u: %s\n", i->if_index, i->if_name);
+        if (i->if_name == name) {
+            addr.sll_ifindex = i->if_index;
+        }
+    }
+
+    if_freenameindex(if_ni);
 
     if (addr.sll_ifindex == 0) {
         perror("if_nameindex()");
