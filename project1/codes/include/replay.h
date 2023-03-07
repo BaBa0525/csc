@@ -16,26 +16,6 @@
 
 #define MAXBUFCOUNT 8
 
-#ifndef _TYPEDEF_STRUCT_DEV
-#define _TYPEDEF_STRUCT_DEV
-typedef struct dev Dev;
-#endif
-
-#ifndef _TYPEDEF_STRUCT_NET
-#define _TYPEDEF_STRUCT_NET
-typedef struct net Net;
-#endif
-
-#ifndef _TYPEDEF_STRUCT_ESP
-#define _TYPEDEF_STRUCT_ESP
-typedef struct esp Esp;
-#endif
-
-#ifndef _TYPEDEF_STRUCT_TXP
-#define _TYPEDEF_STRUCT_TXP
-typedef struct txp Txp;
-#endif
-
 struct frame_arr {
     uint8_t frame[MAXBUFCOUNT][65535];
     uint16_t framelen[MAXBUFCOUNT];

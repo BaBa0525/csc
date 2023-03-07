@@ -33,7 +33,7 @@ inline static int get_ifr_mtu(struct ifreq* ifr) {
     return ifr->ifr_mtu;
 }
 
-inline static struct sockaddr_ll init_addr(char* name) {
+inline static struct sockaddr_ll init_addr(const std::string& name) {
     struct sockaddr_ll addr;
     bzero(&addr, sizeof(addr));
 
@@ -61,46 +61,36 @@ inline static int set_sock_fd(struct sockaddr_ll dev) {
     return fd;
 }
 
-void fmt_frame(Dev* self, Net net, Esp esp, Txp txp) {
+void Dev::fmt_frame(Net net, Esp esp, Txp txp) {
     // [TODO]: store the whole frame into self->frame
     // and store the length of the frame into self->framelen
 }
 
-ssize_t tx_frame(Dev* self) {
-    if (!self) {
-        fprintf(stderr, "Invalid arguments of %s.", __func__);
-        return -1;
-    }
-
+ssize_t Dev::tx_frame() {
     ssize_t nb;
-    socklen_t addrlen = sizeof(self->addr);
+    socklen_t addrlen = sizeof(this->addr);
 
-    nb = sendto(self->fd, self->frame, self->framelen, 0,
-                (struct sockaddr*)&self->addr, addrlen);
+    nb = sendto(this->fd, this->frame, this->framelen, 0,
+                (struct sockaddr*)&this->addr, addrlen);
 
     if (nb <= 0) perror("sendto()");
 
     return nb;
 }
 
-ssize_t rx_frame(Dev* self) {
-    if (!self) {
-        fprintf(stderr, "Invalid arguments of %s.", __func__);
-        return -1;
-    }
-
+ssize_t Dev::rx_frame() {
     ssize_t nb;
-    socklen_t addrlen = sizeof(self->addr);
+    socklen_t addrlen = sizeof(this->addr);
 
-    nb = recvfrom(self->fd, self->frame, self->mtu, 0,
-                  (struct sockaddr*)&self->addr, &addrlen);
+    nb = recvfrom(this->fd, this->frame, this->mtu, 0,
+                  (struct sockaddr*)&this->addr, &addrlen);
     if (nb <= 0) perror("recvfrom()");
 
     return nb;
 }
 
-void init_dev(Dev* self, char* dev_name) {
-    if (!self || !dev_name || strlen(dev_name) + 1 > IFNAMSIZ) {
+Dev::Dev(const std::string& dev_name) {
+    if (dev_name.length() + 1 > IFNAMSIZ) {
         fprintf(stderr, "Invalid arguments of %s.", __func__);
         exit(EXIT_FAILURE);
     }
@@ -108,17 +98,13 @@ void init_dev(Dev* self, char* dev_name) {
     struct ifreq ifr;
     snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", dev_name);
 
-    self->mtu = get_ifr_mtu(&ifr);
+    this->mtu = get_ifr_mtu(&ifr);
 
-    self->addr = init_addr(dev_name);
-    self->fd = set_sock_fd(self->addr);
+    this->addr = init_addr(dev_name);
+    this->fd = set_sock_fd(this->addr);
 
-    self->frame = (uint8_t*)malloc(BUFSIZE * sizeof(uint8_t));
-    self->framelen = 0;
+    this->frame = (uint8_t*)malloc(BUFSIZE * sizeof(uint8_t));
+    this->framelen = 0;
 
-    self->fmt_frame = fmt_frame;
-    self->tx_frame = tx_frame;
-    self->rx_frame = rx_frame;
-
-    self->linkhdr = (uint8_t*)malloc(LINKHDRLEN);
+    this->linkhdr = (uint8_t*)malloc(LINKHDRLEN);
 }

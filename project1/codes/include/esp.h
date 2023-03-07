@@ -7,22 +7,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <functional>
+
 #include "net.h"
 
 /* Authentication data length of HMAC-SHA1-96 is 96 bits */
 #define MAXESPPADLEN 3
 #define MAXESPPLEN \
     IP_MAXPACKET - sizeof(EspHeader) - sizeof(EspTrailer) - HMAC96AUTHLEN
-
-#ifndef _TYPEDEF_STRUCT_TXP
-#define _TYPEDEF_STRUCT_TXP
-typedef struct txp Txp;
-#endif
-
-#ifndef _TYPEDEF_STRUCT_ESP
-#define _TYPEDEF_STRUCT_ESP
-typedef struct esp Esp;
-#endif
 
 typedef struct esp_header {
     uint32_t spi;
@@ -34,7 +26,10 @@ typedef struct esp_trailer {
     uint8_t nxt;
 } EspTrailer;
 
-struct esp {
+using HmacFn = std::function<ssize_t(uint8_t const*, size_t, uint8_t const*,
+                                     size_t, uint8_t*)>;
+
+struct Esp {
     EspHeader hdr;
 
     uint8_t* pl;  // ESP payload
@@ -49,28 +44,15 @@ struct esp {
 
     uint8_t* esp_key;
 
-    uint8_t* (*set_padpl)(Esp* self);
-    uint8_t* (*set_auth)(Esp* self,
-                         ssize_t (*hmac)(uint8_t const*, size_t, uint8_t const*,
-                                         size_t, uint8_t*));
-    void (*get_key)(Esp* self);
-    uint8_t* (*dissect)(Esp* self, uint8_t* esp_pkt, size_t esp_len);
-    Esp* (*fmt_rep)(Esp* self, Proto p);
+    Esp();
+    uint8_t* set_padpl();
+    uint8_t* set_auth(HmacFn hmac);
+
+    void get_key();
+    uint8_t* dissect(uint8_t* esp_pkt, size_t esp_len);
+    Esp* fmt_rep(Proto p);
 };
 
 void get_ik(int type, uint8_t* key);
 
-void get_esp_key(Esp* self);
-
-uint8_t* set_esp_pad(Esp* self);
-
-uint8_t* set_esp_auth(Esp* self,
-                      ssize_t (*hmac)(uint8_t const*, size_t, uint8_t const*,
-                                      size_t, uint8_t*));
-
-uint8_t* dissect_esp(Esp* self, uint8_t* esp_pkt, size_t esp_len);
-
-Esp* fmt_esp_rep(Esp* self, Proto p);
-
-void init_esp(Esp* self);
 #endif

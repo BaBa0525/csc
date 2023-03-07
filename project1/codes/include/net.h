@@ -4,11 +4,6 @@
 #include <netdb.h>
 #include <netinet/ip.h>
 
-#ifndef _TYPEDEF_STRUCT_NET
-#define _TYPEDEF_STRUCT_NET
-typedef struct net Net;
-#endif
-
 typedef enum proto {
     UNKN_PROTO = 0,
 
@@ -19,7 +14,7 @@ typedef enum proto {
     TCP = IPPROTO_TCP,
 } Proto;
 
-struct net {
+struct Net {
     char* src_ip;
     char* dst_ip;
 
@@ -32,8 +27,10 @@ struct net {
     uint16_t plen;
     Proto pro;
 
-    uint8_t* (*dissect)(Net* self, uint8_t* pkt, size_t pkt_len);
-    Net* (*fmt_rep)(Net* self);
+    uint8_t* dissect(uint8_t* pkt, size_t pkt_len);
+    Net* fmt_rep();
+
+    Net();
 };
 
 uint16_t cal_ipv4_cksm(struct iphdr iphdr);
