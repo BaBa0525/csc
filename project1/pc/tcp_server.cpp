@@ -71,7 +71,7 @@ bool process_request(int sockfd) {
 
 int main(int argc, char* argv[]) {
     int sockfd, connfd;
-    struct sockaddr_in serv_addr;
+    sockaddr_in serv_addr;
 
     if (argc != 2) {
         cerr << "Usage: ./tcp_server <server port>" << endl;

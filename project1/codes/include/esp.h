@@ -7,24 +7,21 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <array>
 #include <functional>
 
+#include "constants.h"
 #include "net.h"
 
-/* Authentication data length of HMAC-SHA1-96 is 96 bits */
-#define MAXESPPADLEN 3
-#define MAXESPPLEN \
-    IP_MAXPACKET - sizeof(EspHeader) - sizeof(EspTrailer) - HMAC96AUTHLEN
-
-typedef struct esp_header {
+struct EspHeader {
     uint32_t spi;
     uint32_t seq;
-} EspHeader;
+};
 
-typedef struct esp_trailer {
+struct EspTrailer {
     uint8_t pad_len;
     uint8_t nxt;
-} EspTrailer;
+};
 
 using HmacFn = std::function<ssize_t(uint8_t const*, size_t, uint8_t const*,
                                      size_t, uint8_t*)>;
@@ -32,17 +29,17 @@ using HmacFn = std::function<ssize_t(uint8_t const*, size_t, uint8_t const*,
 struct Esp {
     EspHeader hdr;
 
-    uint8_t* pl;  // ESP payload
-    size_t plen;  // ESP payload length
+    std::array<uint8_t, MAXESPPLEN> pl;  // ESP payload
+    size_t plen;                         // ESP payload length
 
-    uint8_t* pad;  // ESP padding
+    std::array<uint8_t, MAXESPPADLEN> pad;  // ESP padding
 
     EspTrailer tlr;
 
-    uint8_t* auth;
+    std::array<uint8_t, HMAC96AUTHLEN> auth;
     size_t authlen;
 
-    uint8_t* esp_key;
+    std::array<uint8_t, BUFSIZE> esp_key;
 
     Esp();
     uint8_t* set_padpl();

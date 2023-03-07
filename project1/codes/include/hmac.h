@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define HMAC96AUTHLEN 12
-
 /**
  * hmac_sha1()
  * Calculate the digest of the HMAC with SHA1 and set the length of result

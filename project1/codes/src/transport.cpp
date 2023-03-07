@@ -14,12 +14,14 @@
 uint16_t cal_tcp_cksm(struct iphdr iphdr, struct tcphdr tcphdr, uint8_t* pl,
                       int plen) {
     // [TODO]: Finish TCP checksum calculation
+    return 0;
 }
 
 uint8_t* Txp::dissect(Net* net, uint8_t* segm, size_t segm_len) {
     // [TODO]: Collect information from segm
     // (Check IP addr & port to determine the next seq and ack value)
     // Return payload of TCP
+    return nullptr;
 }
 
 Txp* Txp::fmt_rep(struct iphdr iphdr, uint8_t* data, size_t dlen) {
@@ -28,7 +30,4 @@ Txp* Txp::fmt_rep(struct iphdr iphdr, uint8_t* data, size_t dlen) {
     return this;
 }
 
-Txp::Txp() {
-    this->pl = (uint8_t*)malloc(IP_MAXPACKET * sizeof(uint8_t));
-    this->hdrlen = sizeof(struct tcphdr);
-}
+Txp::Txp() : hdrlen{sizeof(tcphdr)} {}

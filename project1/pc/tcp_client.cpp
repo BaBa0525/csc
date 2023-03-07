@@ -12,13 +12,13 @@ using namespace std;
 #define MAXLEN 10000
 
 int get_src_port(int sockfd) {
-    struct sockaddr_in addr;
+    sockaddr_in addr;
     socklen_t len;
 
     len = sizeof(addr);
-    getsockname(sockfd, (struct sockaddr*)&addr, &len);
+    getsockname(sockfd, (sockaddr*)&addr, &len);
     printf("Src port: %d\n", ntohs(addr.sin_port));
-    getpeername(sockfd, (struct sockaddr*)&addr, &len);
+    getpeername(sockfd, (sockaddr*)&addr, &len);
     printf("remote port: %d\n", ntohs(addr.sin_port));
     return ntohs(addr.sin_port);
 }
@@ -26,7 +26,7 @@ int get_src_port(int sockfd) {
 void bind_local(int socket, char* interface_name, int bind_port) {
     if (interface_name) {
         // set name
-        struct ifreq ifr;
+        ifreq ifr;
         memset(&ifr, 0, sizeof(ifr));
         snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", interface_name);
 
@@ -45,13 +45,13 @@ void bind_local(int socket, char* interface_name, int bind_port) {
 
     if (bind_port > 0) {
         int ret;
-        struct sockaddr_in cli_addr;
+        sockaddr_in cli_addr;
         cli_addr.sin_family = AF_INET;
         cli_addr.sin_port = htons(bind_port);
         cli_addr.sin_addr.s_addr = 0;
 
-        if ((ret = bind(socket, (struct sockaddr*)&cli_addr,
-                        sizeof(struct sockaddr_in))) < 0) {
+        if ((ret = bind(socket, (sockaddr*)&cli_addr, sizeof(sockaddr_in))) <
+            0) {
             perror("bind");
             exit(1);
         }
@@ -61,15 +61,15 @@ void bind_local(int socket, char* interface_name, int bind_port) {
 
 int connect_TCP(char* addr, int server_port, char* bind_interface,
                 int bind_port) {
-    struct hostent* he;
-    struct sockaddr_in serv_addr;
+    hostent* he;
+    sockaddr_in serv_addr;
     int sockfd;
     if ((he = gethostbyname(addr)) == NULL) {
         return -1;
     }
     memset((char*)&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr = *(struct in_addr*)he->h_addr;
+    serv_addr.sin_addr = *(in_addr*)he->h_addr;
     serv_addr.sin_port = htons(server_port);
     // Open a TCP socket (an Internet stream socket).
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -79,7 +79,7 @@ int connect_TCP(char* addr, int server_port, char* bind_interface,
 
     bind_local(sockfd, bind_interface, bind_port);
 
-    if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+    if (connect(sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("client:connect error");
         exit(1);
     }
@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
     char recv_str[MAXLEN];
     fd_set readfds;
 
-    struct timeval timeout;
+    timeval timeout;
     timeout.tv_usec = 1;
     timeout.tv_sec = 0;
 

@@ -1,20 +1,14 @@
 #ifndef _REPLAY_H
 #define _REPLAY_H
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-#define WAIT_PKT 0
-#define WAIT_SECRET 1
-#define SEND_ACK 2
-
-#define LINKHDRLEN 14
-
-#define ENA_TCP_ACK true
-#define DISABLE_TCP_ACK false
-
-#define MAXBUFCOUNT 8
+#include "constants.h"
+#include "dev.h"
+#include "esp.h"
+#include "net.h"
+#include "transport.h"
 
 struct frame_arr {
     uint8_t frame[MAXBUFCOUNT][65535];

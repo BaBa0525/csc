@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "constants.h"
 #include "sha.h"
 
 #ifndef SHA_BLOCKSIZE

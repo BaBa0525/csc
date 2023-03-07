@@ -6,9 +6,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "net.h"
+#include <array>
 
-#define BUFSIZE 65535
+#include "net.h"
 
 struct Txp {
     uint16_t x_src_port; /* Expected src port to CSCF */
@@ -17,19 +17,18 @@ struct Txp {
     uint32_t x_tx_seq; /* Expected tx sequence number */
     uint32_t x_tx_ack; /* Expected tx acknowledge number */
 
-    struct tcphdr thdr;
+    tcphdr thdr;
     uint8_t hdrlen;
 
-    uint8_t* pl;
+    std::array<uint8_t, IP_MAXPACKET> pl;
     uint16_t plen;
 
     Txp();
 
     uint8_t* dissect(Net* net, uint8_t* txp_data, size_t txp_len);
-    Txp* fmt_rep(struct iphdr iphdr, uint8_t* data, size_t dlen);
+    Txp* fmt_rep(iphdr iphdr, uint8_t* data, size_t dlen);
 };
 
-uint16_t cal_tcp_cksm(struct iphdr iphdr, struct tcphdr tcphdr, uint8_t* pl,
-                      int plen);
+uint16_t cal_tcp_cksm(iphdr iphdr, tcphdr tcphdr, uint8_t* pl, int plen);
 
 #endif

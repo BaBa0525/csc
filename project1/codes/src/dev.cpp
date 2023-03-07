@@ -16,7 +16,7 @@
 #include "replay.h"
 #include "transport.h"
 
-inline static int get_ifr_mtu(struct ifreq* ifr) {
+inline static int get_ifr_mtu(ifreq* ifr) {
     int fd;
 
     if ((fd = socket(PF_PACKET, SOCK_RAW, 0)) < 0) {
@@ -33,8 +33,8 @@ inline static int get_ifr_mtu(struct ifreq* ifr) {
     return ifr->ifr_mtu;
 }
 
-inline static struct sockaddr_ll init_addr(const std::string& name) {
-    struct sockaddr_ll addr;
+inline static sockaddr_ll init_addr(const std::string& name) {
+    sockaddr_ll addr;
     bzero(&addr, sizeof(addr));
 
     // [TODO]: Fill up struct sockaddr_ll addr which will be used to bind in
@@ -48,7 +48,7 @@ inline static struct sockaddr_ll init_addr(const std::string& name) {
     return addr;
 }
 
-inline static int set_sock_fd(struct sockaddr_ll dev) {
+inline static int set_sock_fd(sockaddr_ll dev) {
     int fd;
 
     if ((fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
@@ -56,7 +56,7 @@ inline static int set_sock_fd(struct sockaddr_ll dev) {
         exit(EXIT_FAILURE);
     }
 
-    bind(fd, (struct sockaddr*)&dev, sizeof(dev));
+    bind(fd, (sockaddr*)&dev, sizeof(dev));
 
     return fd;
 }
@@ -70,9 +70,8 @@ ssize_t Dev::tx_frame() {
     ssize_t nb;
     socklen_t addrlen = sizeof(this->addr);
 
-    nb = sendto(this->fd, this->frame, this->framelen, 0,
-                (struct sockaddr*)&this->addr, addrlen);
-
+    nb = sendto(this->fd, this->frame.data(), this->framelen, 0,
+                (sockaddr*)&this->addr, addrlen);
     if (nb <= 0) perror("sendto()");
 
     return nb;
@@ -82,8 +81,8 @@ ssize_t Dev::rx_frame() {
     ssize_t nb;
     socklen_t addrlen = sizeof(this->addr);
 
-    nb = recvfrom(this->fd, this->frame, this->mtu, 0,
-                  (struct sockaddr*)&this->addr, &addrlen);
+    nb = recvfrom(this->fd, this->frame.data(), this->mtu, 0,
+                  (sockaddr*)&this->addr, &addrlen);
     if (nb <= 0) perror("recvfrom()");
 
     return nb;
@@ -95,16 +94,13 @@ Dev::Dev(const std::string& dev_name) {
         exit(EXIT_FAILURE);
     }
 
-    struct ifreq ifr;
-    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", dev_name);
+    ifreq ifr;
+    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", dev_name.c_str());
 
     this->mtu = get_ifr_mtu(&ifr);
 
     this->addr = init_addr(dev_name);
     this->fd = set_sock_fd(this->addr);
 
-    this->frame = (uint8_t*)malloc(BUFSIZE * sizeof(uint8_t));
     this->framelen = 0;
-
-    this->linkhdr = (uint8_t*)malloc(LINKHDRLEN);
 }

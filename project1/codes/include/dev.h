@@ -5,18 +5,23 @@
 #include <net/if.h>
 #include <stdint.h>
 
+#include <array>
 #include <string>
+
+#include "constants.h"
+#include "esp.h"
+#include "transport.h"
 
 struct Dev {
     int mtu;
 
-    struct sockaddr_ll addr;
+    sockaddr_ll addr;
     int fd;
 
-    uint8_t* frame;
+    std::array<uint8_t, BUFSIZE> frame;
     uint16_t framelen;
 
-    uint8_t* linkhdr;
+    std::array<uint8_t, LINKHDRLEN> linkhdr;
 
     Dev(const std::string& dev_name);
     void fmt_frame(Net net, Esp esp, Txp txp);

@@ -13,13 +13,15 @@
 #include "esp.h"
 #include "transport.h"
 
-uint16_t cal_ipv4_cksm(struct iphdr iphdr) {
+uint16_t cal_ipv4_cksm(iphdr iphdr) {
     // [TODO]: Finish IP checksum calculation
+    return 0;
 }
 
 uint8_t* Net::dissect(uint8_t* pkt, size_t pkt_len) {
     // [TODO]: Collect information from pkt.
     // Return payload of network layer
+    return nullptr;
 }
 
 Net* Net::fmt_rep() {
@@ -28,13 +30,4 @@ Net* Net::fmt_rep() {
     return this;
 }
 
-Net::Net() {
-    this->src_ip = (char*)malloc(INET_ADDRSTRLEN * sizeof(char));
-    this->dst_ip = (char*)malloc(INET_ADDRSTRLEN * sizeof(char));
-    this->x_src_ip = (char*)malloc(INET_ADDRSTRLEN * sizeof(char));
-    this->x_dst_ip = (char*)malloc(INET_ADDRSTRLEN * sizeof(char));
-    this->hdrlen = sizeof(struct iphdr);
-
-    // self->dissect = dissect_ip;
-    // self->fmt_rep = fmt_net_rep;
-}
+Net::Net() : hdrlen{sizeof(iphdr)} {}

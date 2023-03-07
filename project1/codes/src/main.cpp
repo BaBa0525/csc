@@ -16,20 +16,15 @@
 #include "transport.h"
 
 void ipsec_hijack(char* INTERFACE) {
-    Dev dev;
+    Dev dev{INTERFACE};
     Net net;
     Esp esp;
     Txp txp;
 
-    init_dev(&dev, INTERFACE);
-    init_net(&net);
-    init_esp(&esp);
-    init_txp(&txp);
-
     char* str = (char*)malloc(sizeof(char) * 1024);
 
     fd_set readfds;
-    struct timeval timeout = {.tv_sec = 0, .tv_usec = 1};
+    timeval timeout = {.tv_sec = 0, .tv_usec = 1};
 
     bool first = true;
     int* state = (int*)malloc(sizeof(int));
@@ -51,8 +46,8 @@ void ipsec_hijack(char* INTERFACE) {
 
         if (first) {
             first = false;
-            strcpy(victim_ip, net.src_ip);
-            strcpy(server_ip, net.dst_ip);
+            strcpy(victim_ip, net.src_ip.data());
+            strcpy(server_ip, net.dst_ip.data());
         }
 
         if (*state == SEND_ACK) {
@@ -68,11 +63,11 @@ void ipsec_hijack(char* INTERFACE) {
                      test_for_dissect);
         }
 
-        char const* const x_src_ip = strdup(net.x_src_ip);
-        char const* const x_dst_ip = strdup(net.x_dst_ip);
+        char const* const x_src_ip = strdup(net.x_src_ip.data());
+        char const* const x_dst_ip = strdup(net.x_dst_ip.data());
 
-        strcpy(net.x_src_ip, x_src_ip);
-        strcpy(net.x_dst_ip, x_dst_ip);
+        strcpy(net.x_src_ip.data(), x_src_ip);
+        strcpy(net.x_dst_ip.data(), x_dst_ip);
 
         FD_ZERO(&readfds);
         FD_SET(fileno(stdin), &readfds);

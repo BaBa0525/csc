@@ -15,11 +15,11 @@ void get_ik(int type, uint8_t* key) {
     // (Ref. RFC2367 Section 2.3.4 & 2.4 & 3.1.10)
 }
 
-void Esp::get_key() { get_ik(SADB_SATYPE_ESP, this->esp_key); }
+void Esp::get_key() { get_ik(SADB_SATYPE_ESP, this->esp_key.data()); }
 
 uint8_t* Esp::set_padpl() {
     // [TODO]: Fiill up self->pad and self->pad_len (Ref. RFC4303 Section 2.4)
-    return this->pad;
+    return this->pad.data();
 }
 
 uint8_t* Esp::set_auth(HmacFn hmac) {
@@ -35,7 +35,7 @@ uint8_t* Esp::set_auth(HmacFn hmac) {
 
     // [TODO]: Put everything needed to be authenticated into buff and add up nb
 
-    ret = hmac(this->esp_key, esp_keylen, buff, nb, this->auth);
+    ret = hmac(this->esp_key.data(), esp_keylen, buff, nb, this->auth.data());
 
     if (ret == -1) {
         fprintf(stderr, "Error occurs when try to compute authentication data");
@@ -43,22 +43,18 @@ uint8_t* Esp::set_auth(HmacFn hmac) {
     }
 
     this->authlen = ret;
-    return this->auth;
+    return this->auth.data();
 }
 
 uint8_t* Esp::dissect(uint8_t* esp_pkt, size_t esp_len) {
     // [TODO]: Collect information from esp_pkt.
     // Return payload of ESP
+    return nullptr;
 }
 
 Esp* Esp::fmt_rep(Proto p) {
     // [TODO]: Fill up ESP header and trailer (prepare to send)
+    return this;
 }
 
-Esp::Esp() {
-    this->pl = (uint8_t*)malloc(MAXESPPLEN * sizeof(uint8_t));
-    this->pad = (uint8_t*)malloc(MAXESPPADLEN * sizeof(uint8_t));
-    this->auth = (uint8_t*)malloc(HMAC96AUTHLEN * sizeof(uint8_t));
-    this->authlen = HMAC96AUTHLEN;
-    this->esp_key = (uint8_t*)malloc(BUFSIZE * sizeof(uint8_t));
-}
+Esp::Esp() : authlen{HMAC96AUTHLEN} {}
