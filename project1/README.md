@@ -9,7 +9,7 @@
 ### Parsing
 
 - [x] Collect information from `pkt`. Return payload of network layer (`net.cpp:dissect`)
-- [ ] Collect information from `esp_pkt`. Return payload of ESP (`esp.cpp:dissect`)
+- [x] Collect information from `esp_pkt`. Return payload of ESP (`esp.cpp:dissect`)
 - [ ] Collect information from `segm` (Check IP addr & port to determine the next seq and ack value) Return payload of TCP (`transport.cpp:dissect`)
 
 ### ESP Key

@@ -46,12 +46,17 @@ uint8_t* Esp::set_auth(HmacFn hmac) {
     return this->auth.data();
 }
 /**
+ * @brief Collect information from esp_pkt
+ * @param esp_pkt pointer to esp data
+ * @param esp_len length of esp packet data
+ *
  * @returns payload of ESP
  */
 uint8_t* Esp::dissect(uint8_t* esp_pkt, size_t esp_len) {
-    // TODO: Collect information from esp_pkt.
-    // Return payload of ESP
-    return nullptr;
+    this->hdr.spi = ntohl(((uint32_t*)esp_pkt)[0]);
+    this->hdr.seq = ntohl(((uint32_t*)esp_pkt)[1]);
+
+    return esp_pkt + sizeof(EspHeader);
 }
 
 Esp* Esp::fmt_rep(Proto p) {
