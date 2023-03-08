@@ -2,8 +2,6 @@
 
 #include <arpa/inet.h>
 #include <linux/if_ether.h>
-#include <net/if.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +10,7 @@
 #include <unistd.h>
 
 #include "esp.h"
+#include "if_nameindex.h"
 #include "net.h"
 #include "replay.h"
 #include "transport.h"
@@ -39,16 +38,21 @@ inline static sockaddr_ll init_addr(const std::string& name) {
     sockaddr_ll addr;
     bzero(&addr, sizeof(addr));
 
-    struct if_nameindex* if_ni = if_nameindex();
+    // https://man7.org/linux/man-pages/man7/packet.7.html
+    // To get packets only from a specific
+    //        interface use bind(2) specifying an address in a struct
+    //        sockaddr_ll to bind the packet socket to an interface.
+    // Fields used for binding are sll_family (should be AF_PACKET),
+    //        sll_protocol, and sll_ifindex.
 
-    for (auto i = if_ni; !(i->if_index == 0 && i->if_name == NULL); i++) {
-        printf("%u: %s\n", i->if_index, i->if_name);
-        if (i->if_name == name) {
-            addr.sll_ifindex = i->if_index;
+    addr.sll_family = AF_PACKET;
+    addr.sll_protocol = htons(ETH_P_ALL);
+
+    for (auto index : IfNameIndex()) {
+        if (index.if_name == name) {
+            addr.sll_ifindex = index.if_index;
         }
     }
-
-    if_freenameindex(if_ni);
 
     if (addr.sll_ifindex == 0) {
         perror("if_nameindex()");
