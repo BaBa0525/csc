@@ -9,16 +9,16 @@ OBJ := $(patsubst src/%.cpp, objects/%.o, $(SRC))
 
 .PHONY: all clean
 
-all: $(HIJACK)
+all: objects $(HIJACK)
 
 $(HIJACK): $(OBJ)
 	$(CXX) $^ -o $@ $(CXXFLAGS) $(DFLAG)
 
-objects/%.o: src/%.cpp objects
+objects/%.o: src/%.cpp
 	$(CXX) $< -c -o $@ $(CXXFLAGS)
 
 objects:
-	mkdir objects
+	mkdir -p $@
 
 clean:
 	-rm -rf objects
