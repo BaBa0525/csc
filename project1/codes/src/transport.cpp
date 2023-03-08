@@ -13,19 +13,22 @@
 
 uint16_t cal_tcp_cksm(struct iphdr iphdr, struct tcphdr tcphdr, uint8_t* pl,
                       int plen) {
-    // [TODO]: Finish TCP checksum calculation
+    // TODO: Finish TCP checksum calculation
     return 0;
 }
-
+/**
+ * @returns payload of TCP
+ */
 uint8_t* Txp::dissect(Net* net, uint8_t* segm, size_t segm_len) {
-    // [TODO]: Collect information from segm
+    // TODO: Collect information from segm
     // (Check IP addr & port to determine the next seq and ack value)
     // Return payload of TCP
     return nullptr;
 }
 
 Txp* Txp::fmt_rep(struct iphdr iphdr, uint8_t* data, size_t dlen) {
-    // [TODO]: Fill up self->tcphdr (prepare to send)
+    // TODO: Fill up self->tcphdr (prepare to send)
+    // this->thdr.=
 
     return this;
 }

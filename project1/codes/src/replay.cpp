@@ -66,6 +66,9 @@ ssize_t send_msg(Dev* dev, Net* net, Esp* esp, Txp* txp, char* str) {
     return nb;
 }
 
+/**
+ * parse receive data and print secret if get one
+ */
 bool dissect_rx_data(Dev* dev, Net* net, Esp* esp, Txp* txp, int* state,
                      char* victim_ip, char* server_ip, bool* test_for_dissect) {
     uint8_t* net_data = net->dissect(dev->frame.data() + LINKHDRLEN,
@@ -96,17 +99,17 @@ bool dissect_rx_data(Dev* dev, Net* net, Esp* esp, Txp* txp, int* state,
     return false;
 }
 
+/**
+ * @returns Dev::frame.data()
+ */
 uint8_t* wait(Dev* dev, Net* net, Esp* esp, Txp* txp, int* state,
               char* victim_ip, char* server_ip, bool* test_for_dissect) {
-    bool dissect_finish;
+    bool dissect_finish = false;
 
-    while (true) {
+    while (!dissect_finish) {
         dev->framelen = dev->rx_frame();
         dissect_finish = dissect_rx_data(dev, net, esp, txp, state, victim_ip,
-                                         server_ip, test_for_dissect)
-                             ? true
-                             : false;
-        if (dissect_finish) break;
+                                         server_ip, test_for_dissect);
     }
 
     return dev->frame.data();

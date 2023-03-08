@@ -27,6 +27,8 @@ void ipsec_hijack(char* INTERFACE) {
     timeval timeout = {.tv_sec = 0, .tv_usec = 1};
 
     bool first = true;
+
+    // FIXME: Can I use new ?
     int* state = (int*)malloc(sizeof(int));
     *state = WAIT_PKT;
     /*
@@ -35,6 +37,7 @@ void ipsec_hijack(char* INTERFACE) {
      * start to wait for secret sent by server state SEND_ACK: after
      * successfully get the secret, you shoud send ACK back to server
      */
+
     bool* test_for_dissect = (bool*)malloc(sizeof(bool));
     *test_for_dissect = true;
     char* victim_ip = (char*)malloc(sizeof(char) * 64);

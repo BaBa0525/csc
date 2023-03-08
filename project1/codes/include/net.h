@@ -16,6 +16,7 @@ enum Proto {
     TCP = IPPROTO_TCP,
 };
 
+// Network Layer
 struct Net {
     std::array<char, INET_ADDRSTRLEN> src_ip;
     std::array<char, INET_ADDRSTRLEN> dst_ip;

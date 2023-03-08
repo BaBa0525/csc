@@ -76,8 +76,9 @@ inline static int set_sock_fd(sockaddr_ll dev) {
 }
 
 void Dev::fmt_frame(Net net, Esp esp, Txp txp) {
-    // [TODO]: store the whole frame into self->frame
+    // TODO: store the whole frame into self->frame
     // and store the length of the frame into self->framelen
+    this;
 }
 
 ssize_t Dev::tx_frame() {
@@ -91,6 +92,11 @@ ssize_t Dev::tx_frame() {
     return nb;
 }
 
+/**
+ * rx stands for receive
+ * Receive packet from Dev::addr and store in Dev::frame
+ * @returns the number of bytes
+ */
 ssize_t Dev::rx_frame() {
     ssize_t nb;
     socklen_t addrlen = sizeof(this->addr);
