@@ -19,27 +19,38 @@ uint16_t cal_ipv4_cksm(iphdr iphdr) {
 }
 
 /**
+ * @brief Collect ip information from pkt
  * @returns payload of network layer
  */
 uint8_t* Net::dissect(uint8_t* pkt, size_t pkt_len) {
-    // TODO: Collect information from pkt.
-    // Return payload of network layer
-    ip4hdr = *(iphdr*)pkt;
-    hdrlen = ip4hdr.ihl * 4;
-    plen = pkt_len - hdrlen;
+    this->ip4hdr = *(iphdr*)pkt;
+    this->hdrlen = this->ip4hdr.ihl * 4;
+    this->plen = pkt_len - this->hdrlen;
 
-    switch (ip4hdr.protocol) {
+    if (inet_ntop(AF_INET, &this->ip4hdr.saddr, this->src_ip.data(),
+                  this->src_ip.size()) == nullptr) {
+        perror("inet_ntop()");
+        exit(EXIT_FAILURE);
+    };
+
+    if (inet_ntop(AF_INET, &this->ip4hdr.daddr, this->dst_ip.data(),
+                  this->dst_ip.size()) == nullptr) {
+        perror("inet_ntop()");
+        exit(EXIT_FAILURE);
+    };
+
+    switch (this->ip4hdr.protocol) {
         case IPPROTO_IP:
         case IPPROTO_ESP:
         case IPPROTO_TCP:
-            pro = (Proto)ip4hdr.protocol;
+            pro = (Proto)this->ip4hdr.protocol;
             break;
         default:
             pro = UNKN_PROTO;
             break;
     }
 
-    return nullptr;
+    return pkt + this->hdrlen;
 }
 
 Net* Net::fmt_rep() {
