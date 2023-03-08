@@ -33,9 +33,11 @@ void ipsec_hijack(char* INTERFACE) {
     *state = WAIT_PKT;
     /*
      * state WAIT_PKT: wait for packet sent by victim to get the information of
-     * the header state WAIT_SECRET: after sending message to server, you will
-     * start to wait for secret sent by server state SEND_ACK: after
-     * successfully get the secret, you shoud send ACK back to server
+     * the header
+     * state WAIT_SECRET: after sending message to server, you will start to
+     * wait for secret sent by server
+     * state SEND_ACK: after successfully get the secret, you shoud send ACK
+     * back to server
      */
 
     bool* test_for_dissect = (bool*)malloc(sizeof(bool));
