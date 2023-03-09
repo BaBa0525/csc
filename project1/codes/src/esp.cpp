@@ -71,8 +71,9 @@ uint8_t* Esp::dissect(uint8_t* esp_pkt, size_t esp_len) {
     memcpy(this->pad.data(), current_position, this->tlr.pad_len);
 
     this->plen = current_position - payload_start;
+    memcpy(this->pl.data(), payload_start, this->plen);
 
-    return payload_start;
+    return this->pl.data();
 }
 
 Esp* Esp::fmt_rep(Proto p) {

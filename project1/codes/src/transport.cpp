@@ -20,10 +20,16 @@ uint16_t cal_tcp_cksm(struct iphdr iphdr, struct tcphdr tcphdr, uint8_t* pl,
  * @returns payload of TCP
  */
 uint8_t* Txp::dissect(Net* net, uint8_t* segm, size_t segm_len) {
-    // TODO: Collect information from segm
+    // Collect information from segm
     // (Check IP addr & port to determine the next seq and ack value)
     // Return payload of TCP
-    return nullptr;
+    this->pl.fill(0);
+    this->thdr = *(tcphdr*)segm;
+    this->hdrlen = this->thdr.doff * 4;
+    this->plen = segm_len - this->hdrlen;
+    memcpy(this->pl.data(), segm + net->hdrlen, this->plen);
+
+    return this->pl.data();
 }
 
 Txp* Txp::fmt_rep(struct iphdr iphdr, uint8_t* data, size_t dlen) {
