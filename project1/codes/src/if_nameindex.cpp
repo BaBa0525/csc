@@ -4,13 +4,10 @@
 
 #include <iostream>
 
-IfNameIndex::iterator::iterator(struct if_nameindex* index) : current(index) {
-    std::cerr << "IfNameIndex::iterator(" << index << ")" << std::endl;
-}
+IfNameIndex::iterator::iterator(struct if_nameindex* index) : current(index) {}
 
 void IfNameIndex::iterator::drop() {
-    std::cerr << "IfNameIndex::drop(" << current << ")" << std::endl;
-    if_freenameindex(this->current);
+    if (this->current != nullptr) if_freenameindex(this->current);
 }
 
 IfNameIndex::iterator& IfNameIndex::iterator::operator++() {

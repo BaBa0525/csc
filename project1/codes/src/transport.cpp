@@ -17,12 +17,11 @@ uint16_t cal_tcp_cksm(struct iphdr iphdr, struct tcphdr tcphdr, uint8_t* pl,
     return 0;
 }
 /**
+ * @brief Collect information from segm
+ * @note Check IP addr & port to determine the next seq and ack value
  * @returns payload of TCP
  */
 uint8_t* Txp::dissect(Net* net, uint8_t* segm, size_t segm_len) {
-    // Collect information from segm
-    // (Check IP addr & port to determine the next seq and ack value)
-    // Return payload of TCP
     this->pl.fill(0);
     this->thdr = *(tcphdr*)segm;
     this->hdrlen = this->thdr.doff * 4;
