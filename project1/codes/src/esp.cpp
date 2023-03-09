@@ -55,8 +55,24 @@ uint8_t* Esp::set_auth(HmacFn hmac) {
 uint8_t* Esp::dissect(uint8_t* esp_pkt, size_t esp_len) {
     this->hdr.spi = ntohl(((uint32_t*)esp_pkt)[0]);
     this->hdr.seq = ntohl(((uint32_t*)esp_pkt)[1]);
+    uint8_t* payload_start = esp_pkt + sizeof(EspHeader);
 
-    return esp_pkt + sizeof(EspHeader);
+    // Store authentication data (length: 12)
+    uint8_t* current_position = esp_pkt + esp_len - HMAC96AUTHLEN;
+    memcpy(this->auth.data(), current_position, HMAC96AUTHLEN);
+
+    // Store ESP trailer
+    current_position -= 2;
+    this->tlr.pad_len = current_position[0];
+    this->tlr.nxt = current_position[1];
+
+    // Store padding (?)
+    current_position -= this->tlr.pad_len;
+    memcpy(this->pad.data(), current_position, this->tlr.pad_len);
+
+    this->plen = current_position - payload_start;
+
+    return payload_start;
 }
 
 Esp* Esp::fmt_rep(Proto p) {
