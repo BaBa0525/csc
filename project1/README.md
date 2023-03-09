@@ -14,7 +14,7 @@
 
 ### ESP Key
 
-- [ ] Dump authentication key from security association database (SADB) (Ref. RFC2367 Section 2.3.4 & 2.4 & 3.1.10) (`esp.cpp:get_ik`)
+- [x] Dump authentication key from security association database (SADB) (Ref. RFC2367 Section 2.3.4 & 2.4 & 3.1.10) (`esp.cpp:get_ik`)
 - [ ] Fill up `self->pad` and `self->pad_len` (Ref. RFC4303 Section 2.4) (`esp.cpp:set_padpl`)
 - [ ] Put everything needed to be authenticated into `buff` and add up `nb` (`esp.cpp:set_auth`)
 

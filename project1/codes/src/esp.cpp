@@ -9,10 +9,67 @@
 #include "transport.h"
 
 EspHeader esp_hdr_rec;
+#define BYTES_PER_WORD 8
+#define BITS_PER_BYTE 8
+
+bool get_sadb_key_in_response(sadb_msg* resp, int nbytes, uint8_t* key) {
+    if (resp->sadb_msg_errno != 0) {
+        fprintf(stderr, "[ERROR] SADB_DUMP error with errno: %d\n",
+                resp->sadb_msg_errno);
+        return false;
+    }
+
+    nbytes -= sizeof(sadb_msg);
+    sadb_ext* ext = (sadb_ext*)(resp + 1);
+
+    while (nbytes > 0) {
+        if (ext->sadb_ext_type == SADB_EXT_KEY_AUTH) {
+            sadb_key* key_ext = (sadb_key*)ext;
+            memcpy(key, key_ext + 1, key_ext->sadb_key_bits / BITS_PER_BYTE);
+            printf("[DEBUG] key =");
+            for (int i = 0; i < key_ext->sadb_key_bits / BITS_PER_BYTE; ++i) {
+                printf(" %02x", key[i]);
+            }
+            puts("");
+            return false;  // skip the responses intentionally
+        }
+
+        nbytes -= ext->sadb_ext_len * BYTES_PER_WORD;
+        ext = (sadb_ext*)((uint8_t*)ext + (ext->sadb_ext_len * BYTES_PER_WORD));
+    }
+
+    if (resp->sadb_msg_seq == 0) {
+        return false;  // no more response
+    }
+
+    return true;
+}
 
 void get_ik(int type, uint8_t* key) {
     // TODO: Dump authentication key from security association database (SADB)
     // (Ref. RFC2367 Section 2.3.4 & 2.4 & 3.1.10)
+
+    uint8_t buf[4096]{};
+
+    int fd = socket(PF_KEY, SOCK_RAW, PF_KEY_V2);
+
+    sadb_msg msg{
+        .sadb_msg_version = PF_KEY_V2,
+        .sadb_msg_type = SADB_DUMP,
+        .sadb_msg_satype = (uint8_t)type,
+        .sadb_msg_len = sizeof(sadb_msg) / BYTES_PER_WORD,
+        .sadb_msg_pid = (uint32_t)getpid(),
+    };
+
+    write(fd, &msg, sizeof(msg));
+
+    bool has_more = true;
+    while (has_more) {
+        int nbytes = read(fd, buf, sizeof(buf));
+        has_more = get_sadb_key_in_response((sadb_msg*)buf, nbytes, key);
+    }
+
+    close(fd);
 }
 
 void Esp::get_key() { get_ik(SADB_SATYPE_ESP, this->esp_key.data()); }
