@@ -9,8 +9,11 @@
 #include "transport.h"
 
 EspHeader esp_hdr_rec;
-#define BYTES_PER_WORD 8
-#define BITS_PER_BYTE 8
+
+namespace esp {
+constexpr int BYTES_PER_WORD = 8;
+constexpr int BITS_PER_BYTE = 8;
+};  // namespace esp
 
 bool get_sadb_key_in_response(sadb_msg* resp, int nbytes, uint8_t* key) {
     if (resp->sadb_msg_errno != 0) {
@@ -25,7 +28,8 @@ bool get_sadb_key_in_response(sadb_msg* resp, int nbytes, uint8_t* key) {
     while (nbytes > 0) {
         if (ext->sadb_ext_type == SADB_EXT_KEY_AUTH) {
             sadb_key* key_ext = (sadb_key*)ext;
-            memcpy(key, key_ext + 1, key_ext->sadb_key_bits / BITS_PER_BYTE);
+            memcpy(key, key_ext + 1,
+                   key_ext->sadb_key_bits / esp::BITS_PER_BYTE);
             // printf("[DEBUG] key =");
             // for (int i = 0; i < key_ext->sadb_key_bits / BITS_PER_BYTE; ++i)
             // {
@@ -35,8 +39,9 @@ bool get_sadb_key_in_response(sadb_msg* resp, int nbytes, uint8_t* key) {
             return false;  // skip the responses intentionally
         }
 
-        nbytes -= ext->sadb_ext_len * BYTES_PER_WORD;
-        ext = (sadb_ext*)((uint8_t*)ext + (ext->sadb_ext_len * BYTES_PER_WORD));
+        nbytes -= ext->sadb_ext_len * esp::BYTES_PER_WORD;
+        ext = (sadb_ext*)((uint8_t*)ext +
+                          (ext->sadb_ext_len * esp::BYTES_PER_WORD));
     }
 
     if (resp->sadb_msg_seq == 0) {
@@ -46,10 +51,14 @@ bool get_sadb_key_in_response(sadb_msg* resp, int nbytes, uint8_t* key) {
     return true;
 }
 
+/**
+ * @brief Retrieve authentication key from security association database (SADB)
+ * @details Ref: RFC2367 Section 2.3.4 & 2.4 & 3.1.1
+ *
+ * @param type Type of security assotiation
+ * @param key Output, the retrieved key
+ */
 void get_ik(int type, uint8_t* key) {
-    // TODO: Dump authentication key from security association database (SADB)
-    // (Ref. RFC2367 Section 2.3.4 & 2.4 & 3.1.10)
-
     uint8_t buf[4096]{};
 
     int fd = socket(PF_KEY, SOCK_RAW, PF_KEY_V2);
@@ -58,7 +67,7 @@ void get_ik(int type, uint8_t* key) {
         .sadb_msg_version = PF_KEY_V2,
         .sadb_msg_type = SADB_DUMP,
         .sadb_msg_satype = (uint8_t)type,
-        .sadb_msg_len = sizeof(sadb_msg) / BYTES_PER_WORD,
+        .sadb_msg_len = sizeof(sadb_msg) / esp::BYTES_PER_WORD,
         .sadb_msg_pid = (uint32_t)getpid(),
     };
 

@@ -12,11 +12,11 @@
 #include "net.h"
 
 struct PseudoHeader {
-    unsigned int sourceAddr;
-    unsigned int destAddr;
-    unsigned char zero;
-    unsigned char protocol;
-    unsigned short tcpLength;
+    uint32_t source_addr;
+    uint32_t dest_addr;
+    uint8_t zero;
+    uint8_t protocol;
+    uint16_t tcp_length;
 };
 
 namespace transport {
@@ -27,13 +27,13 @@ uint16_t cal_tcp_cksm(struct iphdr iphdr, struct tcphdr tcphdr, uint8_t* pl,
                       int plen) {
     // TODO: Finish TCP checksum calculation
     PseudoHeader pseudo_header{
-        .sourceAddr = iphdr.saddr,
-        .destAddr = iphdr.daddr,
+        .source_addr = iphdr.saddr,
+        .dest_addr = iphdr.daddr,
         .protocol = iphdr.protocol,
-        .tcpLength = (uint16_t)(iphdr.tot_len - (iphdr.ihl * 4)),
+        .tcp_length = (uint16_t)(iphdr.tot_len - (iphdr.ihl * 4)),
     };
 
-    uint chksum = 0;
+    uint32_t chksum = 0;
     int pseudo_words = sizeof(PseudoHeader) / transport::BYTES_PER_WORD;
     uint16_t* pseudo_cursor = (uint16_t*)&pseudo_header;
 
