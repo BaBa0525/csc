@@ -26,11 +26,12 @@ bool get_sadb_key_in_response(sadb_msg* resp, int nbytes, uint8_t* key) {
         if (ext->sadb_ext_type == SADB_EXT_KEY_AUTH) {
             sadb_key* key_ext = (sadb_key*)ext;
             memcpy(key, key_ext + 1, key_ext->sadb_key_bits / BITS_PER_BYTE);
-            printf("[DEBUG] key =");
-            for (int i = 0; i < key_ext->sadb_key_bits / BITS_PER_BYTE; ++i) {
-                printf(" %02x", key[i]);
-            }
-            puts("");
+            // printf("[DEBUG] key =");
+            // for (int i = 0; i < key_ext->sadb_key_bits / BITS_PER_BYTE; ++i)
+            // {
+            //     printf(" %02x", key[i]);
+            // }
+            // puts("");
             return false;  // skip the responses intentionally
         }
 
