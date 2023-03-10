@@ -28,7 +28,7 @@
 - [x] Fill up `self->tcphdr` (prepare to send) (`transport.cpp:fmt_rep`)
 - [x] Fill up ESP header and trailer (prepare to send) (`esp.cpp:fmt_rep`)
 - [x] Fill up `self->ip4hdr` (prepare to send) (`net.cpp:fmt_rep`)
-- [ ] Store the whole frame into `self->frame` and store the length of the frame into `self->framelen` (`dev.cpp:fmt_frame`)
+- [x] Store the whole frame into `self->frame` and store the length of the frame into `self->framelen` (`dev.cpp:fmt_frame`)
 
 ### Call Sequence
 

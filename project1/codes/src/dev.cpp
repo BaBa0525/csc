@@ -74,9 +74,25 @@ inline static int set_sock_fd(sockaddr_ll dev) {
     return fd;
 }
 
+#define MEMCPY(dest, src, nbytes)  \
+    do {                           \
+        memcpy(dest, src, nbytes); \
+        dest += nbytes;            \
+    } while (0)
+
 void Dev::fmt_frame(Net net, Esp esp, Txp txp) {
     // TODO: store the whole frame into self->frame
     // and store the length of the frame into self->framelen
+    this->frame.fill(0);
+    uint8_t* cursor = this->frame.data();
+
+    MEMCPY(cursor, this->linkhdr.data(), LINKHDRLEN);
+    MEMCPY(cursor, &net.ip4hdr, sizeof(iphdr));
+    MEMCPY(cursor, &esp.hdr, sizeof(EspHeader));
+    MEMCPY(cursor, &txp.thdr, txp.hdrlen);
+    MEMCPY(cursor, txp.pl.data(), txp.plen);
+    MEMCPY(cursor, &esp.tlr, sizeof(EspTrailer));
+    MEMCPY(cursor, esp.auth.data(), esp.authlen);
 }
 
 ssize_t Dev::tx_frame() {
