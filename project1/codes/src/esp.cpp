@@ -23,11 +23,11 @@ bool get_sadb_key_in_response(sadb_msg* resp, int nbytes, uint8_t* key) {
     }
 
     nbytes -= sizeof(sadb_msg);
-    sadb_ext* ext = (sadb_ext*)(resp + 1);
+    sadb_ext* ext = reinterpret_cast<sadb_ext*>(resp + 1);
 
     while (nbytes > 0) {
         if (ext->sadb_ext_type == SADB_EXT_KEY_AUTH) {
-            sadb_key* key_ext = (sadb_key*)ext;
+            sadb_key* key_ext = reinterpret_cast<sadb_key*>(ext);
             memcpy(key, key_ext + 1,
                    key_ext->sadb_key_bits / esp::BITS_PER_BYTE);
             // printf("[DEBUG] key =");
@@ -40,8 +40,9 @@ bool get_sadb_key_in_response(sadb_msg* resp, int nbytes, uint8_t* key) {
         }
 
         nbytes -= ext->sadb_ext_len * esp::BYTES_PER_WORD;
-        ext = (sadb_ext*)((uint8_t*)ext +
-                          (ext->sadb_ext_len * esp::BYTES_PER_WORD));
+        ext = reinterpret_cast<sadb_ext*>(
+            reinterpret_cast<uint8_t*>(ext) +
+            (ext->sadb_ext_len * esp::BYTES_PER_WORD));
     }
 
     if (resp->sadb_msg_seq == 0) {
@@ -66,9 +67,9 @@ void get_ik(int type, uint8_t* key) {
     sadb_msg msg{
         .sadb_msg_version = PF_KEY_V2,
         .sadb_msg_type = SADB_DUMP,
-        .sadb_msg_satype = (uint8_t)type,
+        .sadb_msg_satype = static_cast<uint8_t>(type),
         .sadb_msg_len = sizeof(sadb_msg) / esp::BYTES_PER_WORD,
-        .sadb_msg_pid = (uint32_t)getpid(),
+        .sadb_msg_pid = static_cast<uint32_t>(getpid()),
     };
 
     write(fd, &msg, sizeof(msg));
@@ -76,7 +77,8 @@ void get_ik(int type, uint8_t* key) {
     bool has_more = true;
     while (has_more) {
         int nbytes = read(fd, buf, sizeof(buf));
-        has_more = get_sadb_key_in_response((sadb_msg*)buf, nbytes, key);
+        has_more = get_sadb_key_in_response(reinterpret_cast<sadb_msg*>(buf),
+                                            nbytes, key);
     }
 
     close(fd);
@@ -120,8 +122,8 @@ uint8_t* Esp::set_auth(HmacFn hmac) {
  * @returns payload of ESP
  */
 uint8_t* Esp::dissect(uint8_t* esp_pkt, size_t esp_len) {
-    this->hdr.spi = ntohl(((uint32_t*)esp_pkt)[0]);
-    this->hdr.seq = ntohl(((uint32_t*)esp_pkt)[1]);
+    this->hdr.spi = ntohl(reinterpret_cast<uint32_t*>(esp_pkt)[0]);
+    this->hdr.seq = ntohl(reinterpret_cast<uint32_t*>(esp_pkt)[1]);
     uint8_t* payload_start = esp_pkt + sizeof(EspHeader);
 
     // Store authentication data (length: 12)

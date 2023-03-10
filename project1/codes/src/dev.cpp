@@ -35,9 +35,6 @@ inline static int get_ifr_mtu(ifreq* ifr) {
 // Fill up struct sockaddr_ll addr which will be used to bind in
 // func set_sock_fd
 inline static sockaddr_ll init_addr(const std::string& name) {
-    sockaddr_ll addr;
-    bzero(&addr, sizeof(addr));
-
     // https://man7.org/linux/man-pages/man7/packet.7.html
     // To get packets only from a specific
     //        interface use bind(2) specifying an address in a struct
@@ -45,8 +42,10 @@ inline static sockaddr_ll init_addr(const std::string& name) {
     // Fields used for binding are sll_family (should be AF_PACKET),
     //        sll_protocol, and sll_ifindex.
 
-    addr.sll_family = AF_PACKET;
-    addr.sll_protocol = htons(ETH_P_ALL);
+    sockaddr_ll addr{
+        .sll_family = AF_PACKET,
+        .sll_protocol = htons(ETH_P_ALL),
+    };
 
     for (auto index : IfNameIndex()) {
         if (index.if_name == name) {
@@ -78,7 +77,6 @@ inline static int set_sock_fd(sockaddr_ll dev) {
 void Dev::fmt_frame(Net net, Esp esp, Txp txp) {
     // TODO: store the whole frame into self->frame
     // and store the length of the frame into self->framelen
-    this;
 }
 
 ssize_t Dev::tx_frame() {
@@ -86,7 +84,7 @@ ssize_t Dev::tx_frame() {
     socklen_t addrlen = sizeof(this->addr);
 
     nb = sendto(this->fd, this->frame.data(), this->framelen, 0,
-                (sockaddr*)&this->addr, addrlen);
+                reinterpret_cast<sockaddr*>(&this->addr), addrlen);
     if (nb <= 0) perror("sendto()");
 
     return nb;
@@ -102,7 +100,7 @@ ssize_t Dev::rx_frame() {
     socklen_t addrlen = sizeof(this->addr);
 
     nb = recvfrom(this->fd, this->frame.data(), this->mtu, 0,
-                  (sockaddr*)&this->addr, &addrlen);
+                  reinterpret_cast<sockaddr*>(&this->addr), &addrlen);
     if (nb <= 0) perror("recvfrom()");
 
     return nb;

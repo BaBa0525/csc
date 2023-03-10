@@ -52,10 +52,10 @@ ssize_t send_msg(Dev* dev, Net* net, Esp* esp, Txp* txp, char* str) {
         int i;
         int len = strlen(str);
         for (i = 0; i < len; i++) {
-            buf[i] = (uint8_t)str[i];
+            buf[i] = static_cast<uint8_t>(str[i]);
         }
-        buf[i] = (uint8_t)'\r';
-        buf[i + 1] = (uint8_t)'\n';
+        buf[i] = static_cast<uint8_t>('\r');
+        buf[i + 1] = static_cast<uint8_t>('\n');
         nb = len + 1;
     } else {
         nb = 0;

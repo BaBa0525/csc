@@ -23,7 +23,7 @@ uint16_t cal_ipv4_cksm(iphdr iphdr) {
  * @returns payload of network layer
  */
 uint8_t* Net::dissect(uint8_t* pkt, size_t pkt_len) {
-    this->ip4hdr = *(iphdr*)pkt;
+    this->ip4hdr = *reinterpret_cast<iphdr*>(pkt);
     this->hdrlen = this->ip4hdr.ihl * 4;
     this->plen = pkt_len - this->hdrlen;
 
