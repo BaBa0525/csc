@@ -15,18 +15,18 @@
 ### ESP Key
 
 - [x] Dump authentication key from security association database (SADB) (Ref. RFC2367 Section 2.3.4 & 2.4 & 3.1.10) (`esp.cpp:get_ik`)
-- [ ] Fill up `self->pad` and `self->pad_len` (Ref. RFC4303 Section 2.4) (`esp.cpp:set_padpl`)
-- [ ] Put everything needed to be authenticated into `buff` and add up `nb` (`esp.cpp:set_auth`)
+- [x] Fill up `self->pad` and `self->pad_len` (Ref. RFC4303 Section 2.4) (`esp.cpp:set_padpl`)
+- [x] Put everything needed to be authenticated into `buff` and add up `nb` (`esp.cpp:set_auth`)
 
 ### Checksum
 
-- [ ] Finish TCP checksum calculation (`transport.cpp:cal_tcp_cksm`)
+- [x] Finish TCP checksum calculation (`transport.cpp:cal_tcp_cksm`)
 - [ ] Finish IP checksum calculation (`net.cpp:cal_ip_cksm`)
 
 ### Send Preparation
 
-- [ ] Fill up `self->tcphdr` (prepare to send) (`transport.cpp:fmt_rep`)
-- [ ] Fill up ESP header and trailer (prepare to send) (`esp.cpp:fmt_rep`)
+- [x] Fill up `self->tcphdr` (prepare to send) (`transport.cpp:fmt_rep`)
+- [x] Fill up ESP header and trailer (prepare to send) (`esp.cpp:fmt_rep`)
 - [ ] Fill up `self->ip4hdr` (prepare to send) (`net.cpp:fmt_rep`)
 - [ ] Store the whole frame into `self->frame` and store the length of the frame into `self->framelen` (`dev.cpp:fmt_frame`)
 

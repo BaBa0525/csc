@@ -54,8 +54,8 @@ uint16_t cal_tcp_cksm(struct iphdr iphdr, struct tcphdr tcphdr, uint8_t* pl,
         chksum += tcp_pl_cursor[i];
     }
 
-    // if the payload length is not aligned to a word boundary, we need to pad
-    // the last byte with zeros
+    // if the payload length is an odd number,
+    // we need to pad the last byte with zeros
     if (plen % transport::BYTES_PER_WORD != 0) {
         uint8_t last_byte = reinterpret_cast<uint8_t*>(pl)[plen];
         chksum += static_cast<uint16_t>(last_byte) << 8;
@@ -86,9 +86,11 @@ uint8_t* Txp::dissect(Net* net, uint8_t* segm, size_t segm_len) {
 }
 
 Txp* Txp::fmt_rep(struct iphdr iphdr, uint8_t* data, size_t dlen) {
-    // TODO: Fill up self->tcphdr (prepare to send)
     printf("Expected seq: %u\n", this->x_tx_seq);
     this->thdr.seq = htonl(this->x_tx_seq);
+
+    memcpy(this->pl.data(), data, dlen);
+
     this->thdr.check = 0;
     this->thdr.check =
         cal_tcp_cksm(iphdr, this->thdr, this->pl.data(), this->plen);

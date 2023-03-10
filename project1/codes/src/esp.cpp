@@ -5,6 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <numeric>
+
 #include "hmac.h"
 #include "transport.h"
 
@@ -13,6 +15,7 @@ EspHeader esp_hdr_rec;
 namespace esp {
 constexpr int BYTES_PER_WORD = 8;
 constexpr int BITS_PER_BYTE = 8;
+constexpr int BYTE_ALIGNMENT_LENGTH = 4;
 };  // namespace esp
 
 bool get_sadb_key_in_response(sadb_msg* resp, int nbytes, uint8_t* key) {
@@ -87,7 +90,10 @@ void get_ik(int type, uint8_t* key) {
 void Esp::get_key() { get_ik(SADB_SATYPE_ESP, this->esp_key.data()); }
 
 uint8_t* Esp::set_padpl() {
-    // TODO: Fiill up self->pad and self->pad_len (Ref. RFC4303 Section 2.4)
+    // Fill up self->pad and self->pad_len (Ref. RFC4303 Section 2.4)
+
+    std::iota(this->pad.begin(), this->pad.begin() + this->tlr.pad_len, 1);
+
     return this->pad.data();
 }
 
@@ -102,7 +108,22 @@ uint8_t* Esp::set_auth(HmacFn hmac) {
     size_t nb = 0;  // Number of bytes to be hashed
     ssize_t ret;
 
-    // TODO: Put everything needed to be authenticated into buff and add up nb
+    // Put everything needed to be authenticated into buff and add up nb
+    uint8_t* cursor = buff;
+
+    memcpy(cursor, &this->hdr, sizeof(EspHeader));
+    cursor += sizeof(EspHeader);
+
+    memcpy(cursor, this->pl.data(), this->plen);
+    cursor += this->plen;
+
+    memcpy(cursor, this->pad.data(), this->tlr.pad_len);
+    cursor += this->tlr.pad_len;
+
+    memcpy(cursor, &this->tlr, sizeof(EspTrailer));
+    cursor += sizeof(EspTrailer);
+
+    nb = cursor - buff;
 
     ret = hmac(this->esp_key.data(), esp_keylen, buff, nb, this->auth.data());
 
@@ -146,7 +167,14 @@ uint8_t* Esp::dissect(uint8_t* esp_pkt, size_t esp_len) {
 }
 
 Esp* Esp::fmt_rep(Proto p) {
-    // TODO: Fill up ESP header and trailer (prepare to send)
+    // Fill up ESP header and trailer (prepare to send)
+
+    this->hdr.seq++;
+
+    this->tlr.pad_len =
+        (this->plen + sizeof(EspTrailer)) % esp::BYTE_ALIGNMENT_LENGTH;
+    this->tlr.nxt = p;
+
     return this;
 }
 
