@@ -26,11 +26,10 @@ constexpr int BYTES_PER_WORD = 2;
 uint16_t cal_tcp_cksm(struct iphdr iphdr, struct tcphdr tcphdr, uint8_t* pl,
                       int plen) {
     PseudoHeader pseudo_header{
-        .source_addr = htonl(iphdr.saddr),
-        .dest_addr = htonl(iphdr.daddr),
+        .source_addr = iphdr.saddr,
+        .dest_addr = iphdr.daddr,
         .protocol = iphdr.protocol,
-        .tcp_length =
-            static_cast<uint16_t>(htons(iphdr.tot_len) - (iphdr.ihl * 4)),
+        .tcp_length = static_cast<uint16_t>(iphdr.tot_len - (iphdr.ihl * 4)),
     };
 
     uint32_t chksum = 0;
