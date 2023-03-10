@@ -10,12 +10,27 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <numeric>
+
 #include "esp.h"
 #include "transport.h"
 
+namespace net {
+constexpr int BYTES_PER_WORD = 2;
+}
+
 uint16_t cal_ipv4_cksm(iphdr iphdr) {
-    // TODO: Finish IP checksum calculation
-    return 0;
+    // Finish IP checksum calculation
+    uint16_t* cursor = reinterpret_cast<uint16_t*>(&iphdr);
+    size_t hdrlen = iphdr.ihl * 4;
+
+    uint32_t sum =
+        std::accumulate(cursor, cursor + hdrlen / net::BYTES_PER_WORD, 0u);
+
+    while (sum >> 16) {
+        sum = (sum & 0xffff) + (sum >> 16);
+    }
+    return ~sum;
 }
 
 /**
@@ -55,6 +70,9 @@ uint8_t* Net::dissect(uint8_t* pkt, size_t pkt_len) {
 
 Net* Net::fmt_rep() {
     // TODO: Fill up self->ip4hdr (prepare to send)
+    this->ip4hdr.tot_len = htons(this->plen + this->hdrlen);
+    this->ip4hdr.check = 0;
+    this->ip4hdr.check = cal_ipv4_cksm(this->ip4hdr);
 
     return this;
 }
