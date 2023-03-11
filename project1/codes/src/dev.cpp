@@ -93,6 +93,8 @@ void Dev::fmt_frame(Net net, Esp esp, Txp txp) {
     MEMCPY(cursor, txp.pl.data(), txp.plen);
     MEMCPY(cursor, &esp.tlr, sizeof(EspTrailer));
     MEMCPY(cursor, esp.auth.data(), esp.authlen);
+
+    this->framelen = cursor - this->frame.data();
 }
 
 ssize_t Dev::tx_frame() {
@@ -101,6 +103,7 @@ ssize_t Dev::tx_frame() {
 
     nb = sendto(this->fd, this->frame.data(), this->framelen, 0,
                 reinterpret_cast<sockaddr*>(&this->addr), addrlen);
+    printf("%ld bytes sent.\n", nb);
     if (nb <= 0) perror("sendto()");
 
     return nb;

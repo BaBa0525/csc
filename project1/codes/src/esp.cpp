@@ -169,7 +169,8 @@ uint8_t* Esp::dissect(uint8_t* esp_pkt, size_t esp_len) {
 Esp* Esp::fmt_rep(Proto p) {
     // Fill up ESP header and trailer (prepare to send)
 
-    this->hdr.seq++;
+    this->hdr.spi = htonl(this->hdr.spi);
+    this->hdr.seq = htonl(this->hdr.seq + 1);
 
     this->tlr.pad_len =
         (this->plen + sizeof(EspTrailer)) % esp::BYTE_ALIGNMENT_LENGTH;
