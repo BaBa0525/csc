@@ -33,12 +33,7 @@ bool get_sadb_key_in_response(sadb_msg* resp, int nbytes, uint8_t* key) {
             sadb_key* key_ext = reinterpret_cast<sadb_key*>(ext);
             memcpy(key, key_ext + 1,
                    key_ext->sadb_key_bits / esp::BITS_PER_BYTE);
-            // printf("[DEBUG] key =");
-            // for (int i = 0; i < key_ext->sadb_key_bits / BITS_PER_BYTE; ++i)
-            // {
-            //     printf(" %02x", key[i]);
-            // }
-            // puts("");
+
             return false;  // skip the responses intentionally
         }
 
@@ -143,8 +138,8 @@ uint8_t* Esp::set_auth(HmacFn hmac) {
  * @returns payload of ESP
  */
 uint8_t* Esp::dissect(uint8_t* esp_pkt, size_t esp_len) {
-    this->hdr.spi = ntohl(reinterpret_cast<uint32_t*>(esp_pkt)[0]);
-    this->hdr.seq = ntohl(reinterpret_cast<uint32_t*>(esp_pkt)[1]);
+    this->hdr.spi = reinterpret_cast<uint32_t*>(esp_pkt)[0];
+    this->hdr.seq = reinterpret_cast<uint32_t*>(esp_pkt)[1];
     uint8_t* payload_start = esp_pkt + sizeof(EspHeader);
 
     // Store authentication data (length: 12)
@@ -169,8 +164,8 @@ uint8_t* Esp::dissect(uint8_t* esp_pkt, size_t esp_len) {
 Esp* Esp::fmt_rep(Proto p) {
     // Fill up ESP header and trailer (prepare to send)
 
-    this->hdr.spi = htonl(this->hdr.spi);
-    this->hdr.seq = htonl(this->hdr.seq + 1);
+    this->hdr.spi = esp_hdr_rec.spi;
+    this->hdr.seq = htonl(++esp_hdr_rec.seq);
 
     size_t extra_length =
         (this->plen + sizeof(EspTrailer)) % esp::BYTE_ALIGNMENT_LENGTH;

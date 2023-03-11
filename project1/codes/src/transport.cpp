@@ -80,15 +80,31 @@ uint8_t* Txp::dissect(Net* net, uint8_t* segm, size_t segm_len) {
     this->plen = segm_len - this->hdrlen;
     memcpy(this->pl.data(), segm + net->hdrlen, this->plen);
 
-    if (this->thdr.psh) printf("Seq: %u\n", ntohl(this->thdr.seq));
+    if (strcmp(net->x_src_ip.data(), net->dst_ip.data()) == 0) {
+        this->x_tx_seq = ntohl(this->thdr.th_ack);
+        this->x_tx_ack = ntohl(this->thdr.th_seq) + this->plen;
+        this->x_src_port = ntohs(this->thdr.th_dport);
+        this->x_dst_port = ntohs(this->thdr.th_sport);
+    }
 
     return this->pl.data();
 }
 
 Txp* Txp::fmt_rep(struct iphdr iphdr, uint8_t* data, size_t dlen) {
-    printf("Expected seq: %u\n", this->x_tx_seq);
     this->thdr.seq = htonl(this->x_tx_seq);
+    this->thdr.ack_seq = htonl(this->x_tx_ack);
+    this->thdr.th_sport = htons(this->x_src_port);
+    this->thdr.th_dport = htons(this->x_dst_port);
 
+    if (dlen == 0) {
+        this->thdr.psh = 0;
+        this->thdr.ack = 1;
+    } else {
+        this->thdr.psh = 1;
+        this->thdr.ack = 1;
+    }
+
+    this->plen = dlen;
     memcpy(this->pl.data(), data, dlen);
 
     this->thdr.check = 0;

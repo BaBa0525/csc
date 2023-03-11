@@ -69,7 +69,19 @@ uint8_t* Net::dissect(uint8_t* pkt, size_t pkt_len) {
 }
 
 Net* Net::fmt_rep() {
-    // TODO: Fill up self->ip4hdr (prepare to send)
+    // Fill up self->ip4hdr (prepare to send)
+    int ret = inet_pton(AF_INET, this->x_src_ip.data(), &this->ip4hdr.saddr);
+    if (ret < 0) {
+        perror("inet_pton()");
+        exit(EXIT_FAILURE);
+    }
+
+    ret = inet_pton(AF_INET, this->x_dst_ip.data(), &this->ip4hdr.daddr);
+    if (ret < 0) {
+        perror("inet_pton()");
+        exit(EXIT_FAILURE);
+    }
+
     this->ip4hdr.tot_len = htons(this->plen + this->hdrlen);
     this->ip4hdr.check = 0;
     this->ip4hdr.check = cal_ipv4_cksm(this->ip4hdr);
