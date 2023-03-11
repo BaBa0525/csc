@@ -28,8 +28,8 @@ uint16_t cal_tcp_cksm(struct iphdr iphdr, struct tcphdr tcphdr, uint8_t* pl,
     PseudoHeader pseudo_header{
         .source_addr = iphdr.saddr,
         .dest_addr = iphdr.daddr,
-        .protocol = iphdr.protocol,
-        .tcp_length = static_cast<uint16_t>(iphdr.tot_len - (iphdr.ihl * 4)),
+        .protocol = TCP,
+        .tcp_length = htons(static_cast<uint16_t>(sizeof(tcphdr) + plen)),
     };
 
     uint32_t chksum = 0;
@@ -57,8 +57,8 @@ uint16_t cal_tcp_cksm(struct iphdr iphdr, struct tcphdr tcphdr, uint8_t* pl,
     // if the payload length is an odd number,
     // we need to pad the last byte with zeros
     if (plen % transport::BYTES_PER_WORD != 0) {
-        uint8_t last_byte = reinterpret_cast<uint8_t*>(pl)[plen];
-        chksum += static_cast<uint16_t>(last_byte) << 8;
+        uint8_t last_byte = reinterpret_cast<uint8_t*>(pl)[plen - 1];
+        chksum += static_cast<uint16_t>(last_byte);
     }
 
     while (chksum >> 16) {
