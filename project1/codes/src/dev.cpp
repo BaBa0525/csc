@@ -81,7 +81,7 @@ inline static int set_sock_fd(sockaddr_ll dev) {
     } while (0)
 
 void Dev::fmt_frame(Net net, Esp esp, Txp txp) {
-    // TODO: store the whole frame into self->frame
+    // store the whole frame into self->frame
     // and store the length of the frame into self->framelen
     this->frame.fill(0);
     uint8_t* cursor = this->frame.data();
@@ -91,6 +91,7 @@ void Dev::fmt_frame(Net net, Esp esp, Txp txp) {
     MEMCPY(cursor, &esp.hdr, sizeof(EspHeader));
     MEMCPY(cursor, &txp.thdr, txp.hdrlen);
     MEMCPY(cursor, txp.pl.data(), txp.plen);
+    MEMCPY(cursor, esp.pad.data(), esp.tlr.pad_len);
     MEMCPY(cursor, &esp.tlr, sizeof(EspTrailer));
     MEMCPY(cursor, esp.auth.data(), esp.authlen);
 
@@ -103,7 +104,7 @@ ssize_t Dev::tx_frame() {
 
     nb = sendto(this->fd, this->frame.data(), this->framelen, 0,
                 reinterpret_cast<sockaddr*>(&this->addr), addrlen);
-    printf("%ld bytes sent.\n", nb);
+
     if (nb <= 0) perror("sendto()");
 
     return nb;

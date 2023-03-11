@@ -56,7 +56,7 @@ ssize_t send_msg(Dev* dev, Net* net, Esp* esp, Txp* txp, char* str) {
         }
         buf[i] = static_cast<uint8_t>('\r');
         buf[i + 1] = static_cast<uint8_t>('\n');
-        nb = len + 1;
+        nb = len + 2;
     } else {
         nb = 0;
     }

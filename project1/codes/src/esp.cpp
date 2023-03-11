@@ -172,8 +172,10 @@ Esp* Esp::fmt_rep(Proto p) {
     this->hdr.spi = htonl(this->hdr.spi);
     this->hdr.seq = htonl(this->hdr.seq + 1);
 
-    this->tlr.pad_len =
+    size_t extra_length =
         (this->plen + sizeof(EspTrailer)) % esp::BYTE_ALIGNMENT_LENGTH;
+    this->tlr.pad_len = (esp::BYTE_ALIGNMENT_LENGTH - extra_length) %
+                        esp::BYTE_ALIGNMENT_LENGTH;
     this->tlr.nxt = p;
 
     return this;
