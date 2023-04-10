@@ -15,6 +15,11 @@ def scan():
     for sent, received in result:
         clients.append({'ip': received.psrc, 'mac': received.hwsrc})
 
+    print("Devices on the network:")
+    print("IP address\tMAC address")
+    for client in clients:
+        print(f"{client['ip']}\t{client['mac']}")
+
 def arp_request(ip: str):
     arp = ARP(pdst=ip)
     ether = Ether(dst="ff::ff::ff::ff::ff::ff")
@@ -24,9 +29,9 @@ def arp_request(ip: str):
 
 
 def main():
+    scan()
     arp_request("10.0.3.7")
 
 
 if __name__ == "__main__":
-
     main()
