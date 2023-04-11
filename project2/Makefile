@@ -2,12 +2,12 @@
 
 all: mitm_attack pharm_attack
 
-mitm_attack: ca.crt port_forward mitm_attack.py
+mitm_attack: ca.crt port_forward mitm_attack.py arp.py
 	cp mitm_attack.py mitm_attack
 	chmod +x mitm_attack
 
-pharm_attack:
-	cp main.py pharm_attack
+pharm_attack: pharm_attack.py arp.py
+	cp pharm_attack.py pharm_attack
 	chmod +x pharm_attack
 
 ca.key:
